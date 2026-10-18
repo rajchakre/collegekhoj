@@ -98,11 +98,16 @@
       ]);
 
       if (!collegesRes.ok || !coursesRes.ok) {
-        throw new Error('Failed to load colleges data');
+        throw new Error('Failed to load data from server');
       }
 
       const collegesData = await collegesRes.json();
       const coursesData  = await coursesRes.json();
+
+      if (!Array.isArray(collegesData) || !Array.isArray(coursesData)) {
+        const msg = (collegesData && collegesData.error) || (coursesData && coursesData.error) || 'Unexpected response format';
+        throw new Error(msg);
+      }
 
       // Map courses to colleges
       const collegeCourseMap = {};
@@ -134,7 +139,7 @@
           <div class="empty-state-icon-wrap" aria-hidden="true">⚠️</div>
           <h3 class="empty-state-title">Unable to Connect</h3>
           <p class="empty-state-desc">
-            Could not fetch colleges from the server. Please check that the server is running on port 3000.
+            ${escapeHtml(err.message || 'Could not fetch colleges from the server.')}
           </p>
           <button type="button" class="btn-empty-reset" onclick="location.reload()">Retry Connection</button>
         </div>

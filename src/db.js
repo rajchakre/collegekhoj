@@ -27,17 +27,38 @@ if (process.env.VERCEL) {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 }
 
+// Clean up stale lock directory if left by a previous crash or abrupt exit
+const lockPath = DB_PATH + '.lock';
+if (fs.existsSync(lockPath)) {
+  try {
+    fs.rmSync(lockPath, { recursive: true, force: true });
+  } catch (err) {}
+}
+
 const db = new Database(DB_PATH);
 
-// Enable WAL mode, busy timeout, and foreign keys via exec
+// Clean lock on process exit
+const cleanLock = () => {
+  try {
+    if (fs.existsSync(lockPath)) {
+      fs.rmSync(lockPath, { recursive: true, force: true });
+    }
+  } catch (e) {}
+};
+process.on('exit', cleanLock);
+process.on('SIGINT', () => { cleanLock(); process.exit(0); });
+process.on('SIGTERM', () => { cleanLock(); process.exit(0); });
+
+// Configure busy timeout, journal mode, and foreign keys
 try {
   db.exec('PRAGMA busy_timeout = 5000');
 } catch (e) {}
 try {
-  db.exec('PRAGMA journal_mode=WAL');
+  db.exec('PRAGMA journal_mode = DELETE');
+  db.exec('PRAGMA synchronous = NORMAL');
 } catch (e) {}
 try {
-  db.exec('PRAGMA foreign_keys=ON');
+  db.exec('PRAGMA foreign_keys = ON');
 } catch (e) {}
 
 // Create tables if not already existing
