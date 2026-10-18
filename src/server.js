@@ -24,7 +24,11 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`\nCollegeKhoj running at http://localhost:${PORT}`);
-  console.log(`API: http://localhost:${PORT}/api/colleges\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\nCollegeKhoj running at http://localhost:${PORT}`);
+    console.log(`API: http://localhost:${PORT}/api/colleges\n`);
+  });
+}
+
+module.exports = app;
