@@ -86,6 +86,11 @@
     resultsCount.textContent = 'Searching colleges…';
   }
 
+  // Dynamic API base: adapts whether loaded on http://localhost:3000, Live Server, file:///, or Vercel
+  const API_BASE = (window.location.protocol === 'file:' || (window.location.port !== '3000' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')))
+    ? 'http://localhost:3000'
+    : '';
+
   // --- Initialize App & Fetch Data ---
   async function initApp() {
     renderSkeletons(6);
@@ -93,8 +98,8 @@
     try {
       // Parallel fetch for colleges and courses to guarantee instant complete data
       const [collegesRes, coursesRes] = await Promise.all([
-        fetch('/api/colleges'),
-        fetch('/api/courses')
+        fetch(`${API_BASE}/api/colleges`),
+        fetch(`${API_BASE}/api/courses`)
       ]);
 
       if (!collegesRes.ok || !coursesRes.ok) {
